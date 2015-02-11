@@ -1,0 +1,7 @@
+{
+	state S1;
+	state S2;
+	{
+		trans a:S1->S2;
+	}
+}

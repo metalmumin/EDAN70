@@ -1,0 +1,35 @@
+2014-11-10
+SNA(SuperNameAnalysis) now works for a single SM scope.
+Next step is to implement for many SMs.
+
+Now wish to implement for brackets.
+
+Brackets done. A state machine is now inside {}.
+
+Next step is to implement scope visibility. A state machine should
+see the above declarations. Or be able to choose not to.
+
+2014-11-14
+SNA improved to include getDeclarationList().
+But this is in ASTNode, can this be changed somehow? 
+		(SHOULD it be changed?...)
+		
+2014-11-15
+Added _declareBeforeUse. It's pretty poorly implemented and
+should be improved. But it does the trick.
+
+Next step is a bit more report writing I think.
+
+2014-11-16
+There is now a long if-statement instead of a limited declaration
+list. This is also poor since it has to check a lot of things every
+time. Could be optimized to perform better.
+
+Shadowing of local variables in scopes? All kind of shadowing.
+
+2014-11-28
+run cloc:
+cloc-1.62.exe --force-lang="Java" <dest>/NameAnalysis.jrag
+
+With library: 10 lines of code
+Without library: 27 lines of code

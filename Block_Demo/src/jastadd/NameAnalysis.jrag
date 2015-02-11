@@ -1,0 +1,15 @@
+aspect NameAnalysis {
+
+	IdUse implements Usage;
+	IdDecl implements Declaration;
+	Block implements Scope;
+	
+	syn String IdUse.name() = getID();
+	syn String IdDecl.dname() = getID();
+	
+//	syn String IdUse.decl() = "HEWHFSDAKFNDS";
+	
+	syn boolean Block._checkEnclosingScopes() = true;
+	syn boolean Block._declareBeforeUse() = true;
+
+}

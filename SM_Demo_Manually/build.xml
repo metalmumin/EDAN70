@@ -1,0 +1,93 @@
+<project name="A2-MinimalAST" default="build">
+	<property name="jar.file" value="compiler.jar" />
+	<property name="main.class" value="lang.DumpTree" />
+
+	<property name="lib.dir" value="lib" />
+	<property name="src.dir" value="src" />
+	<property name="gen.dir" value="${src.dir}/gen" />
+	<property name="bin.dir" value="ant-bin" />
+	
+	<property name="cp.lib" 
+		value="${lib.dir}/beaver-rt.jar:${lib.dir}/hamcrest-core-1.3.jar:${lib.dir}/junit-4.11.jar" />
+	
+	<taskdef name="jflex" classname="jflex.anttask.JFlexTask" 
+		classpath="${lib.dir}/jflex-1.6.0.jar"/>
+	<taskdef name="beaver" classname="beaver.comp.run.AntTask" 
+		classpath="${lib.dir}/beaver-ant.jar"/>
+	<taskdef name="jastadd" classname="org.jastadd.JastAddTask"
+		classpath="${lib.dir}/jastadd2.jar" />
+
+	<target name="build" depends="gen">
+		<mkdir dir="${bin.dir}" />
+		<javac srcdir="." destdir="${bin.dir}" includeantruntime="false" classpath="${cp.lib}" />
+	</target>
+
+	<target name="gen" depends="scanner-gen,parser-gen,ast-gen">
+	</target>
+
+	<target name="scanner-gen">
+		<mkdir dir="${gen.dir}" />
+		<jflex file="${src.dir}/scanner/scanner.flex" outdir="${gen.dir}/lang/ast" nobak="yes"/>
+	</target>
+
+	<target name="parser-gen">
+		<mkdir dir="${gen.dir}" />
+		<beaver file="${src.dir}/parser/parser.beaver" destdir="${gen.dir}"
+			terminalNames="yes"/>
+	</target>
+
+	<target name="ast-gen">
+		<mkdir dir="${gen.dir}" />
+		<jastadd package="lang.ast"
+			outdir="${gen.dir}"
+			beaver="true">
+			<fileset dir="${src.dir}/jastadd">
+				<include name="*.ast" />
+				<include name="*.jadd" />
+				<include name="*.jrag" />
+			</fileset>
+		</jastadd>
+	</target>
+
+	<target name="test" depends="build">
+		<junit fork="true">
+			<classpath>
+				<pathelement path="${bin.dir}:${cp.lib}" />
+			</classpath>
+			<formatter type="brief" usefile="false" />
+			<batchtest>
+				<fileset dir="${src.dir}/java">
+					<include name="tests/*.java" />
+					<exclude name="tests/AbstractTestSuite.java" />
+					<exclude name="tests/AbstractParameterizedTest.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="jar" depends="build">
+		<jar destfile="${jar.file}">
+			<fileset dir="${bin.dir}" includes="**/*.class" excludes="tests/*" />
+			<zipfileset includes="**/*.class" src="${lib.dir}/beaver-rt.jar"/>
+			<manifest>
+				<attribute name="Main-Class" value="${main.class}"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${gen.dir}" />
+		<delete dir="${bin.dir}" />
+        <delete>
+            <fileset dir="testfiles" includes="**/*.out"/>
+        </delete>
+	</target>
+
+	<target name="update-expected-output" description="copy all .out-files to .expected">
+		<copy todir="testfiles">
+			<fileset dir="testfiles" includes="**/*.out"/>
+			<globmapper from="*.out" to="*.expected"/>
+		</copy>
+	</target>
+
+</project>

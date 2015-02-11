@@ -1,0 +1,2 @@
+Error at line 6: Assignment to type 'null' with type 'int' is illegal.
+Error at line 6: Variable 'd' is not declared in A

@@ -1,0 +1,85 @@
+import java.util.ArrayList;
+
+aspect SuperNameAnalysis {
+	
+	interface Usage {
+		String name();
+	}
+	
+	interface Declaration {
+		String dname();
+		int localIndex();
+	}
+	
+	interface Scope {
+		boolean _checkEnclosingScopes();
+		boolean _declareBeforeUse();
+	}
+
+	syn int ASTNode.localIndex() {
+		if(getParent() == null) return 0;
+		return prevNode().localIndex();
+	}
+
+	eq Declaration.localIndex() = prevNode().localIndex() + 1;
+	inh ASTNode ASTNode.prevNode();
+	eq ASTNode.getChild(int i).prevNode() = prevNode(i);
+	syn ASTNode ASTNode.lastNode() = prevNode(getNumChild());
+	syn ASTNode ASTNode.prevNode(int i) = i>0 ? getChild(i-1).lastNode() : this;
+
+	syn int ASTNode.scopeIndex() {
+		if(getParent() == null) return 0;
+		return prevNode().scopeIndex();
+	}
+	eq Scope.scopeIndex() = prevNode().scopeIndex() + 1;
+	
+	syn ArrayList<Declaration> ASTNode.getDeclarationList(int index) {
+		ArrayList<Declaration> res = new ArrayList<Declaration>();
+		for(int i=0; i<getNumChild(); i++) {
+			if(getChild(i) instanceof Declaration) {
+				res.add((Declaration) getChild(i));
+			} else if (getChild(i).getNumChild() > 0 && !(getChild(i) instanceof Scope)) {
+				res.addAll(getChild(i).getDeclarationList(index));
+			}
+		}
+		return res;
+	}
+
+	syn Declaration Usage.decl() = lookup(name(), localIndex());
+	inh Declaration Usage.lookup(String s, int index);
+	
+	syn Declaration Scope.localLookup(String s, int index) {
+		for(Declaration d : getDeclarationList(index)) {
+			if(_declareBeforeUse() && d.localIndex() > index) break; 
+			if(s.equals(d.dname())) return d;
+		}
+		return null;
+	}
+	
+	// inh Declaration Scope.lookup(String s, int index);
+	
+	syn Scope Scope.getEnclosingScope() {
+		ASTNode node = this;
+		node = node.getParent();
+		while(node != null) {
+			if(node instanceof Scope) return (Scope) node;
+			node = node.getParent();
+		}
+		return null;
+	}
+	
+	eq Scope.getChild().lookup(String s, int index) {
+		return lookupMe(s, index);
+	}
+	
+	syn Declaration Scope.lookupMe(String s, int index) {
+		Declaration d = localLookup(s, index);
+		if(getEnclosingScope() == null) return d;
+ 		if(_checkEnclosingScopes() && d==null) return getEnclosingScope().lookupMe(s, index);
+ 		return d;
+	}
+	
+	syn boolean Declaration.isMultiplyDeclared() = lookup(getID(), localIndex()-1) != null; // localIndex()-1 since we want all declarations above it. What if we dont have declare before use?...
+	inh Declaration Declaration.lookup(String s, int index);
+	
+}

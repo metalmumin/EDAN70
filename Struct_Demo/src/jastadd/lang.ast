@@ -1,0 +1,18 @@
+Program 		::= Struct* Stmt*;
+Struct			::= Type Stmt*;
+
+abstract Stmt;
+DeclarationStmt:Stmt ::= Type IdDecl;
+AssignStmt:Stmt	::= UseExpr Expr;
+
+abstract Expr;
+abstract UseExpr:Expr;
+IntLiteral:Expr	::= <NUMERAL>;
+Dot:UseExpr		::= Left:UseExpr Right:IdUse;
+IdUse:UseExpr	::= <ID>;
+
+abstract Type;
+IntType:Type 	::= <INT>;
+StructType:Type ::= IdDecl;
+
+IdDecl 			::= <ID>;

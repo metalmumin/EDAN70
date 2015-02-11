@@ -1,0 +1,159 @@
+aspect NameAnalysis {
+	/**
+	 * IdUse: Start name analysis lookup-pattern.
+	 */
+	inh IdDecl IdUse.lookup(String name);
+	syn IdDecl IdUse.decl() = lookup(getID());
+
+	/**
+	 * IdDecl: Start isMultiplyDeclared lookup-pattern.
+	 */
+	inh IdDecl IdDecl.lookup(String name);
+	syn boolean IdDecl.isMultiplyDeclared()	{
+		IdDecl decl = lookup(getID()); // TODO: Unimplemented
+		if(decl == null)
+			return false;
+		return decl != this;
+	}
+
+	/**
+	 * Program : Name analysis lookup pattern.
+	 * 
+	 * getStruct(): Halt List<Struct> node's lookup.
+	 * getStmt(int index): Allow List<Stmt> node to lookup other Stmt nodes
+	 * with localLookup(String name, int until).
+	 */
+	eq  Program.getStruct(int until).lookup(String name) {
+		for (int i = 0; i < until; i++) {
+			IdDecl decl = getStruct(i).getType().getTypeDeclaration();
+
+			if(decl != null && decl.getID().equals(name))
+				return decl;
+		}
+		return null;
+	}	eq  Program.getStmt(int index).lookup(String name) = localLookup(name, index);
+	syn IdDecl Program.localLookup(String name, int until) {
+		for (int i = 0; i < until; i++) {
+			IdDecl decl = getStmt(i).localLookup(name);
+			if(decl != null && decl.getID().equals(name))
+				return decl;
+		}
+		return null;
+	}
+
+	/**
+	 * Struct: Name analysis lookup pattern.
+	 * 
+	 * getStmt(int index): Allow List<Stmt> within Struct node to lookup other Stmt nodes. 
+	 */
+	eq Struct.getStmt(int index).lookup(String name) = localLookup(name,index);
+	syn IdDecl Struct.localLookup(String name, int until) {
+		for (int i = 0; i < until; i++) {
+			IdDecl decl = getStmt(i).localLookup(name);
+			if(decl != null && decl.getID().equals(name))
+				return decl;
+		}
+		return null;
+	}
+
+	/**
+	 * Dot: Type analysis-assisted Name analysis lookup pattern.
+	 * 
+	 * getRight(): Evaluate type by following getLeft().decl().type().getStruct()
+	 * which gets the Struct node bound to the StructType. Struct's Stmt<List> is then exposed
+	 * for analysis. 
+	 */
+	eq Dot.getRight().lookup(String name) {
+		Type t = getLeft().type();
+		if(t == null) return null;
+		if(t.hasStruct()){
+			for(Stmt s: t.getStruct().getStmtList()) {
+				IdDecl decl = s.localLookup(name);
+				if(decl != null && decl.getID().equals(name))
+					return decl;
+			}
+		}
+		return null;
+	}
+
+
+	/**
+	 * abstract Stmt: Name analysis lookup pattern.
+	 * 
+	 * IdDecl localLookup(String name): A local lookup that is exclusive to DeclarationStmt,
+	 * which allows for name analysis in Stmt nodes.
+	 */
+	syn IdDecl Stmt.localLookup(String name) = null;
+	syn IdDecl DeclarationStmt.localLookup(String name) = getIdDecl().getID().equals(name) ? getIdDecl() : null;
+
+	/*---------------------------------------------------*/
+	/*                BEGIN TYPE ANALYSIS                */
+	/*---------------------------------------------------*/
+
+	/**
+	 * IdDecl: Start Type analysis lookup-pattern.
+	 */
+	inh Type IdDecl.typeLookup();
+	syn Type IdDecl.type() = typeLookup();
+
+	/**
+	 * Program: 
+	 */
+	eq Program.getChild().typeLookup() = null;
+	eq Program.getChild().structLookup(String name) {
+		for(Struct s: getStructList()) {
+			if(s.getType().getType().equals(name))
+				return s;
+		}
+		return null;
+	}
+
+	/**
+	 * DeclarationStmt: Type analyzes DeclarationStmt.
+	 * 
+	 * getIdDecl(): Catches typeLookup() pattern from child IdDecl node and returns
+	 * Type from child Type node.
+	 */
+	eq DeclarationStmt.getIdDecl().typeLookup() = getType() != null ? getType() : null;
+
+	/**
+	 * abstract Type: Assists Type analysis.
+	 * 
+	 * String  getType(): Returns type String for all known types.
+	 * boolean hasStruct(): True if Type is StructType.
+	 * Struct  getStruct(): Returns Struct node reference. 
+	 */
+	syn IdDecl Type.getTypeDeclaration();
+	syn IdDecl IntType.getTypeDeclaration() = new IdDecl(new String("int"));
+	syn IdDecl StructType.getTypeDeclaration() = getIdDecl();
+	syn String Type.getType();
+	syn String IntType.getType() = "int"; // TODO: getINT() is "" in IntType
+	syn String StructType.getType() = getIdDecl().getID();
+	syn boolean Type.hasStruct();
+	syn boolean IntType.hasStruct() = false;
+	syn boolean StructType.hasStruct() = getStruct() != null;
+	syn Struct Type.getStruct();
+	syn Struct IntType.getStruct() = null;
+	inh Struct StructType.structLookup(String name);
+	syn Struct StructType.getStruct() = structLookup(getIdDecl().getID());
+
+	/**
+	 * abstract Expr: Assign static type to IntLiteral.
+	 * abstract UseExpr: Assign types from attributes.
+	 */
+	syn Type Expr.type();
+	syn Type UseExpr.type();
+	syn Type IntLiteral.type() = new IntType();
+	syn Type Dot.type() = getRight().decl() == null ? null : getRight().decl().type();
+	syn Type IdUse.type() = decl() == null ? null : decl().type();
+
+	/**
+	 * AssignStmt: isCompatibleWith() stores compatibility check result.
+	 */
+	syn boolean AssignStmt.isCompatibleWith() = (getUseExpr().type() == null || getExpr().type() == null) ? false : getUseExpr().type().isCompatibleWith(getExpr().type());
+
+	/**
+	 * abstract Type: isCompatibleWith(Type t) compatibility check.
+	 */
+	syn boolean Type.isCompatibleWith(Type t) = (t == null) ? null : getType().equals(t.getType());
+}

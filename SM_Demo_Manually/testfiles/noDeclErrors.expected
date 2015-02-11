@@ -1,0 +1,4 @@
+Error at line 1: Variable 'S1' is not declared.
+Error at line 1: Variable 'S2' is not declared.
+Error at line 2: Variable 'S2' is not declared.
+Error at line 2: Variable 'S3' is not declared.

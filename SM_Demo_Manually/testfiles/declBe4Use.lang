@@ -1,0 +1,3 @@
+state S1;
+trans a:S1->S2;
+state S2;

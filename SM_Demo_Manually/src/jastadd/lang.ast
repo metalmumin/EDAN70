@@ -1,0 +1,8 @@
+Program ::= Stmt*;
+
+abstract Stmt;
+State:Stmt	::= IdDecl;
+Trans:Stmt	::= IdDecl From:IdUse To:IdUse;
+
+IdDecl 	::= <ID>;
+IdUse 	::= <ID>;

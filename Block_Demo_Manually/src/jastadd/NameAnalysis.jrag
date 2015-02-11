@@ -1,0 +1,50 @@
+aspect NameAnalysis {
+/**
+ * Variable lookup-pattern: IdDecl
+ */
+	eq Program.getChild().lookup(String name) = null;
+	
+    /**
+	 * IdUse: Start name analysis lookup-pattern.
+	 */
+	syn IdDecl IdUse.decl() = lookup(getID());
+	inh IdDecl IdUse.lookup(String name);
+	
+	/**
+	 * IdDecl: Start isMultiplyDeclared lookup-pattern
+	 */
+	inh IdDecl IdDecl.lookup(String name);
+	syn boolean IdDecl.isMultiplyDeclared()	{
+		IdDecl decl = lookup(getID());
+		if(decl == null)
+			return false;
+		return decl != this;
+	}
+	
+	/**
+	 * Block : Stmt
+	 * Lookup List<Stmt>. No? Ask parent.	
+	 */
+	inh IdDecl Block.lookup(String name);
+	eq  Block.getStmt(int index).lookup(String name) {
+		IdDecl decl = localLookup(name, index);
+		return decl != null ? decl : lookup(name);
+	}
+	
+	syn IdDecl Block.localLookup(String name, int until) {
+		for (int i = 0; i < until; i++) {
+			IdDecl decl = getStmt(i).localLookup(name);
+			if(decl != null && decl.getID().equals(name))
+				return decl;
+		}
+		return null;
+	}
+	
+	/**
+	 * Abstract Stmt
+	 */
+	inh IdDecl Stmt.lookup(String name);
+	syn IdDecl Stmt.localLookup(String name) = null;
+	syn IdDecl State.localLookup(String name) = getIdDecl() != null ? getIdDecl() : null;
+	syn IdDecl Trans.localLookup(String name) = getIdDecl() != null ? getIdDecl() : null;
+}

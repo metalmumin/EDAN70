@@ -1,0 +1,3 @@
+Error at line 7: Assignment to type 'null' with type 'int' is illegal.
+Error at line 7: Variable 'b' is not declared in A
+Error at line 9: Assignment to type 'null' with type 'int' is illegal.

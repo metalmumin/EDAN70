@@ -1,0 +1,8 @@
+state S1;
+state S2;
+trans a:S1->S2;
+state S3;
+trans b:S3->S2;
+state S5;
+state S7;
+trans c:S5->S7;

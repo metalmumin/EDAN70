@@ -1,0 +1,41 @@
+aspect NameAnalysis {
+    /**
+	 * IdUse: Start name analysis lookup-pattern.
+	 */
+	syn IdDecl IdUse.decl() = lookup(getID());
+	inh IdDecl IdUse.lookup(String name);
+	
+	/**
+	 * IdDecl: Start isMultiplyDeclared lookup-pattern
+	 */
+	inh IdDecl IdDecl.lookup(String name);
+	syn boolean IdDecl.isMultiplyDeclared()	{
+		IdDecl decl = lookup(getID());
+		if(decl == null)
+			return false;
+		return decl != this;
+	}
+	
+	/**
+	 * Program : Stmt
+	 */
+	eq  Program.getStmt(int index).lookup(String name) {
+		return localLookup(name, index);
+	}
+	
+	syn IdDecl Program.localLookup(String name, int until) {
+		for (int i = 0; i < until; i++) {
+			IdDecl decl = getStmt(i).localLookup(name);
+			if(decl != null && decl.getID().equals(name))
+				return decl;
+		}
+		return null;
+	}
+	
+	/**
+	 * Abstract Stmt
+	 */
+	syn IdDecl Stmt.localLookup(String name) = null;
+	syn IdDecl State.localLookup(String name) = getIdDecl();
+	syn IdDecl Trans.localLookup(String name) = getIdDecl();
+}

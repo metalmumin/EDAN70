@@ -1,0 +1,40 @@
+aspect NameAnalysis {
+
+	Program implements Scope;
+	
+	Struct implements Scope;
+	//,TypeDecl;
+//	syn String Struct.dtype() = getType().dtype();
+
+//	DeclarationStmt implements TypeUse,Declaration;
+//	syn String DeclarationStmt.dname() = getIdDecl().getID();
+//	syn String DeclarationStmt.type() =  getType().dtype();
+	
+//	AssignStmt	implements UnknownType;
+//	
+//	IntLiteral 	implements TypeUse;
+//	UseExpr		implements UnknownType;
+	IdUse 		implements Usage;
+	
+	syn String IntLiteral.type() = "int";
+	syn String IdUse.name() = getID();
+	
+	
+	/* IdDecl */
+	IdDecl implements Declaration;
+	syn String IdDecl.dname() = getID();
+	
+	/* Type declarations */
+//	Type implements TypeDecl;
+//	IntType implements TypeDecl;
+//	StructType implements TypeDecl;
+//	syn String Type.dtype();
+//	syn String IntType.dtype() = "int";
+//	syn String StructType.dtype() = getIdDecl().getID();
+	
+	
+	syn boolean Program._checkEnclosingScopes() = false;
+	syn boolean Struct._checkEnclosingScopes() = false;
+	syn boolean Program._declareBeforeUse() = true;
+	syn boolean Struct._declareBeforeUse() = true;
+}

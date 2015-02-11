@@ -1,0 +1,83 @@
+%class "LangParser";
+%package "lang.ast";
+
+%embed {:
+	static public class SyntaxError extends RuntimeException { public SyntaxError(String msg) {super(msg);}}
+	// Disable syntax error recovery
+	protected void recoverFromError(Symbol token, TokenStream in) {
+		throw new SyntaxError("Cannot recover from the syntax error");
+	}
+:};
+
+%terminals STRUCT, INT, SEMICOLON, DOT, LPAREN, RPAREN, ID, NUMERAL, ASSIGN, NUMERAL;
+
+%typeof program 		= "Program";
+%typeof struct_list_eps	= "List";
+%typeof stmt_list_eps	= "List";
+%typeof stmt_list 		= "List";
+%typeof struct_list 	= "List";
+
+%typeof struct			= "Struct";
+%typeof type			= "Type";
+%typeof stmt 			= "Stmt";
+
+%typeof expr			= "Expr";
+%typeof use_expr		= "UseExpr";
+
+%typeof dot				= "Dot";
+%typeof int_lit			= "IntLiteral";
+
+%typeof decl_stmt		= "StructDecl";
+%typeof assign_stmt		= "IntDecl";
+
+%typeof iddecl			= "IdDecl";
+%typeof iduse			= "IdUse";
+
+%typeof int_type		= "IntType";
+%typeof struct_type		= "StructType";
+
+%goal program;
+
+// for empty lists write struct_list_eps.s stmt_list_eps.sl {: return new Program(s,sl); :};
+// TODO: make lists epsilon capable.
+program = struct_list_eps.s stmt_list_eps.sl {: return new Program(s,sl); :};
+
+struct_list_eps =
+			/* epsilon */ {: return new List(); :}
+			| struct_list
+			;
+
+struct_list =
+			struct.s {: return new List().add(s); :}
+			| struct_list.sl struct.s {: return sl.add(s); :}
+			;
+
+stmt_list_eps =
+			/* epsilon */ {: return new List(); :}
+			| stmt_list
+			; 
+
+stmt_list = stmt.st {: return new List().add(st); :}
+			| stmt_list.s stmt.st {: return s.add(st); :}
+			;
+			
+struct = STRUCT type.t LPAREN stmt_list_eps.sl RPAREN {: return new Struct(t,sl); :};
+stmt = decl_stmt | assign_stmt;
+
+decl_stmt = type.t iddecl.id SEMICOLON {: return new DeclarationStmt(t,id); :};
+assign_stmt = use_expr.ue ASSIGN expr.e SEMICOLON {: return new AssignStmt(ue,e); :};
+
+type = int_type | struct_type;
+int_type = INT.t {: return new IntType(t); :};
+struct_type = iddecl.id {: return new StructType(id); :};
+
+expr = int_lit | use_expr;
+int_lit = NUMERAL.num {: return new IntLiteral(num); :};
+
+use_expr = dot | iduse;
+dot =  dot.d DOT iduse.id {: return new Dot(d,id); :}
+	  | iduse.i DOT iduse.d  {: return new Dot(i,d); :}
+	  ;
+
+iddecl = ID.id {: return new IdDecl(id); :} ;
+iduse = ID.id {: return new IdUse(id); :} ;

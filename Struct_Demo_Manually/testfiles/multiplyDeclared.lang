@@ -1,0 +1,9 @@
+struct A {
+	int e;
+}
+struct A {
+	int d;
+	B b;
+}
+
+A a;

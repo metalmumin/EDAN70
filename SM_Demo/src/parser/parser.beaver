@@ -1,0 +1,36 @@
+%class "LangParser";
+%package "lang.ast";
+
+%embed {:
+	static public class SyntaxError extends RuntimeException { public SyntaxError(String msg) {super(msg);}}
+	// Disable syntax error recovery
+	protected void recoverFromError(Symbol token, TokenStream in) {
+		throw new SyntaxError("Cannot recover from the syntax error");
+	}
+:};
+
+%terminals STATE, TRANS, ARROW, ID, SEMICOLON, COLON;
+
+%typeof program = "Program";
+%typeof stmt 		= "Stmt";
+%typeof stmt_list 	= "List";
+%typeof state 	= "State";
+%typeof trans 	= "Trans";
+%typeof iddecl 	= "IdDecl";
+%typeof iduse 	= "IdUse";
+
+%goal program;
+
+program = stmt_list.sl {: return new Program(sl); :} ;
+
+stmt_list = stmt.st {: return new List().add(st); :}
+			| stmt_list.s stmt.st {: return s.add(st); :}
+			;
+
+stmt = state | trans ;
+
+state = STATE iddecl.id SEMICOLON {: return new State(id); :} ;
+trans = TRANS iddecl.id COLON iduse.id1 ARROW iduse.id2 SEMICOLON {: return new Trans(id,id1,id2); :} ;
+
+iddecl = ID.id {: return new IdDecl(id); :} ;
+iduse = ID.id {: return new IdUse(id); :} ;

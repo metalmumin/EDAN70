@@ -1,0 +1,13 @@
+struct A {
+	int d;
+}
+
+int A;
+A a;
+a.d = 34;
+
+int c;
+int c;
+
+a = c;
+a.d = a;
