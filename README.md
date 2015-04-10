@@ -46,42 +46,33 @@ To test separate example files go to the project directory where the `compiler.j
 File Types
 ----------
 
-* `.ast`      JastAdd abstract syntax tree files
+* `.flex`     JastAdd scanner files
+* `.beaver`   JastAdd parser files.
+* `.ast`      JastAdd abstract syntax tree files.
+
 * `.jrag`     JastAdd semantics files. Usually declarative.
 * `.jadd`     JastAdd semantics files. Usually imperative.
-* `.java`     Regular Java sources
+* `.java`     Regular Java sources.
+
+* `.lang`     Test file.
+* `.expected` Expected test result file.
 
 Directory Structure
 -------------------
-There are three different compilers. Each done with manual name analysis (directory name ends with "_Manually") and with name analysis using the Name Analysis Library. Here follows the structure of each directory:
 
-* `build.xml` Compiled generated source files.
+* `build.xml` Ant script.
 * `bin/`
 * `lib/`
 * `src/`
-    - `gen/` Generated source files.
-    - `jastadd/` JastAdd aspect and AST specifications.
-    - `java/` Java source files
+    - `gen/` Generated .java files.
+    - `jastadd/` JastAdd AST .jrag .ast specifications.
+    - `java/` Java source files.
         - `lang/`
-            - `Compiler.java` The main class. Compiles the .ast and .jrag files to Java files and performs name analysis.
+            - `Compiler.java` Main class.
         - `tests/`
-            - `AbstractParametrizedTest.java` A parameterized test suite. Adds helper methods for parameterized testing.
+            - `AbstractParametrizedTest.java` Helper methods for parameterized testing.
             - `AbstractTestSuite.java` Utility methods for running tests.
-            - `ShowErrors.java` JUnit test class.
-    - `parser/` JastAdd parser specifications.
-    - `scanner/` JastAdd scanner specifications.
+            - `ShowErrors.java` Helper methods for parameterized testing.
+    - `parser/` JastAdd parser .beaver specification.
+    - `scanner/` JastAdd scanner .flex specification.
 * `testfiles/` Written test files to test name analysis.
-
-Understanding the Implementation
---------------------------------
-Overall interfacing with our JastAdd name analysis library:
-
-* Generated AST classes with declarations, their usages, and scope definitions
-  are interfaced with name-analysis-library.
-* The attribute named `decl()` should be a bound reference to the symbols, `Usage`, declaration. This is given to the user.
-* The attribute named `isMultiplyDeclared()` which is a boolean attribute belonging to the class `Declaration`. This is given to the user.
-* The attribute named `_checkEnclosingScopes()` which is a boolean attribute belonging to the class `Scope`. Has to be set by the user.
-* The attribute named `_declareBefureUse()` which is a boolean attribute belonging to the class `Scope`. Has to be set by the user.
-* There are more attributes which are used to evaluate the above attributes. The attributes which are not listed above are there but they are not intended to be used in this release.
-
-All attributes have to be set by the user. The JastAdd compiler will complain if this is not done.
