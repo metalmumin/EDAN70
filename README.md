@@ -47,15 +47,15 @@ File Types
 ----------
 
 * `.flex`     JastAdd scanner files
-* `.beaver`   JastAdd parser files.
-* `.ast`      JastAdd abstract syntax tree files.
+* `.beaver`   JastAdd parser files
+* `.ast`      JastAdd abstract syntax tree files
 
-* `.jrag`     JastAdd semantics files. Usually declarative.
-* `.jadd`     JastAdd semantics files. Usually imperative.
-* `.java`     Regular Java sources.
+* `.jrag`     JastAdd semantics files. Usually declarative
+* `.jadd`     JastAdd semantics files. Usually imperative
+* `.java`     Regular Java sources
 
-* `.lang`     Test file.
-* `.expected` Expected test result file.
+* `.lang`     Test file
+* `.expected` Expected test result file
 
 Directory Structure
 -------------------
